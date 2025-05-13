@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const { sequelize } = require("./models");
 const authRoutes = require("./routes/authRoutes");
+const mediaRoutes = require("./routes/mediaRoutes");
 const cors = require("cors");
 const app = express();
 const cookieParser = require("cookie-parser");
@@ -15,7 +16,7 @@ app.use(
     credentials: true,
   })
 );
-
+app.use("/api/media", mediaRoutes);
 app.use("/api", authRoutes);
 
 sequelize.sync().then(() => {

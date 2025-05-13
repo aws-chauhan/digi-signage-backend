@@ -1,15 +1,18 @@
+// middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
 
-module.exports = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.sendStatus(401);
-
-  const token = authHeader.split(" ")[1];
+exports.authenticate = (req, res, next) => {
+  const token = req.cookies.accessToken; // ✅ Read from cookie
+  if (!token) {
+    console.log("❌ No accessToken cookie found");
+    return res.status(401).send("Unauthorized");
+  }
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = payload.userId;
+    const payload = jwt.verify(token, process.env.ACCESS_SECRET);
+    req.userId = payload.userId; // now available in protected routes
     next();
-  } catch {
-    res.sendStatus(403);
+  } catch (err) {
+    console.error("Invalid token:", err.message);
+    return res.status(403).send("Forbidden");
   }
 };

@@ -51,18 +51,18 @@ exports.login = async (req, res) => {
   user.refreshToken = refreshToken;
   await user.save();
 
-  res
+  resres
     .cookie("accessToken", accessToken, {
-      httpOnly: httpOnly,
-      secure: isProduction,
-      sameSite: "Strict",
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
+      maxAge: 15 * 60 * 1000,
     })
     .cookie("refreshToken", refreshToken, {
-      httpOnly: httpOnly,
-      secure: isProduction,
-      sameSite: "Strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     })
     .json({
       user: {
