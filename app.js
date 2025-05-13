@@ -4,6 +4,9 @@ const { sequelize } = require("./models");
 const authRoutes = require("./routes/authRoutes");
 const cors = require("cors");
 const app = express();
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
 app.use(express.json());
 // Add this before routes
 app.use(
