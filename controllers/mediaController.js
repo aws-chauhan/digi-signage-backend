@@ -14,6 +14,7 @@ const s3 = new AWS.S3({
 exports.getPresignedUrl = async (req, res) => {
   console.log(11111111111111, "Getting url");
   const { filename, filetype, userId } = req.body;
+  console.log(req.body);
 
   if (!filename || !filetype || !userId) {
     return res
@@ -28,11 +29,13 @@ exports.getPresignedUrl = async (req, res) => {
     Key: key,
     Expires: 60,
     ContentType: filetype,
-    ACL: "public-read",
+    // ACL: "public-read",
   };
 
   try {
     const url = await s3.getSignedUrlPromise("putObject", params);
+    console.log(1111, url);
+    console.log(2222, key);
     res.json({ url, key });
   } catch (err) {
     console.error("❌ Failed to generate signed URL:", err);
@@ -42,10 +45,10 @@ exports.getPresignedUrl = async (req, res) => {
 
 // POST /api/media/confirm-upload
 exports.confirmUpload = async (req, res) => {
-  const { key, userId } = req.body;
+  const { key, userId, filename, mimeType, fileSize } = req.body;
 
-  if (!key || !userId) {
-    return res.status(400).json({ error: "Missing key or userId" });
+  if (!key || !userId || !filename || !mimeType || !fileSize) {
+    return res.status(400).json({ error: "Missing required fields" });
   }
 
   const fileUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
@@ -54,6 +57,9 @@ exports.confirmUpload = async (req, res) => {
     await MediaContent.create({
       fileUrl,
       uploadedBy: userId,
+      filename,
+      mimeType,
+      fileSize,
     });
 
     res.json({ message: "Upload recorded", fileUrl });
