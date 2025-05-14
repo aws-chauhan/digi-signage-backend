@@ -22,7 +22,7 @@ exports.getPresignedUrl = async (req, res) => {
       .json({ error: "Missing filename, filetype, or userId" });
   }
 
-  const key = `uploads/${userId}/${uuidv4()}_${filename}`;
+  const key = `userMedia/uploads/${userId}/${uuidv4()}_${filename}`;
 
   const params = {
     Bucket: process.env.S3_BUCKET_NAME,
