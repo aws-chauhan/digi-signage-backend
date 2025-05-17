@@ -1,6 +1,6 @@
 const AWS = require("aws-sdk");
 const { v4: uuidv4 } = require("uuid");
-const { MediaContent, Tag } = require("../models");
+const { User, MediaContent, Tag, Role } = require("../models");
 
 const s3 = new AWS.S3({
   region: process.env.AWS_REGION,
@@ -88,5 +88,32 @@ exports.confirmUpload = async (req, res) => {
   } catch (err) {
     console.error("[ERROR] Failed to save media content to DB:", err);
     res.status(500).json({ error: "DB save failed" });
+  }
+};
+
+exports.fetchMedia = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const user = await User.findByPk(userId, {
+      include: [Role],
+    });
+    console.log(1111, user);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const isAdmin = user.Role?.name === "admin";
+
+    const media = await MediaContent.findAll({
+      where: isAdmin ? {} : { uploadedBy: userId },
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.json({ media });
+  } catch (err) {
+    console.error("[ERROR] Failed to fetch media:", err);
+    res.status(500).json({ error: "Server error while fetching media" });
   }
 };
