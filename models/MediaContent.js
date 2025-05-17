@@ -20,6 +20,14 @@ const MediaContent = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    uploadedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "Users",
+        key: "id",
+      },
+    },
     description: {
       type: DataTypes.STRING,
       allowNull: true,

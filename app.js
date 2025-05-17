@@ -3,6 +3,8 @@ const express = require("express");
 const { sequelize } = require("./models");
 const authRoutes = require("./routes/authRoutes");
 const mediaRoutes = require("./routes/mediaRoutes");
+const tagRoutes = require("./routes/tagRoutes");
+
 const cors = require("cors");
 const app = express();
 const cookieParser = require("cookie-parser");
@@ -16,6 +18,7 @@ app.use(
     credentials: true,
   })
 );
+app.use("/api/tags", tagRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api", authRoutes);
 

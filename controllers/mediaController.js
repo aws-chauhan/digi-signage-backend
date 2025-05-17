@@ -1,6 +1,6 @@
 const AWS = require("aws-sdk");
 const { v4: uuidv4 } = require("uuid");
-const { MediaContent } = require("../models");
+const { MediaContent, Tag } = require("../models");
 
 const s3 = new AWS.S3({
   region: process.env.AWS_REGION,
@@ -48,7 +48,15 @@ exports.getPresignedUrl = async (req, res) => {
 exports.confirmUpload = async (req, res) => {
   console.log("[INFO] Confirming uploaded media");
 
-  const { key, userId, filename, mimeType, fileSize } = req.body;
+  const {
+    key,
+    userId,
+    filename,
+    mimeType,
+    fileSize,
+    description,
+    tags = [],
+  } = req.body;
   console.log("[DEBUG] Confirm payload:", req.body);
 
   if (!key || !userId || !filename || !mimeType || !fileSize) {
@@ -59,15 +67,23 @@ exports.confirmUpload = async (req, res) => {
   const fileUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
   try {
-    await MediaContent.create({
+    const media = await MediaContent.create({
       fileUrl,
       uploadedBy: userId,
       filename,
       mimeType,
       fileSize,
+      description: description || null,
     });
 
-    console.log("[INFO] Media content saved to database");
+    if (tags.length > 0) {
+      for (const tagName of tags) {
+        const [tag] = await Tag.findOrCreate({ where: { name: tagName } });
+        await media.addTag(tag);
+      }
+    }
+
+    console.log("[INFO] Media content and tags saved to database");
     res.json({ message: "Upload recorded", fileUrl });
   } catch (err) {
     console.error("[ERROR] Failed to save media content to DB:", err);
