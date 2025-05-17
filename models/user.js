@@ -45,6 +45,10 @@ const User = sequelize.define("User", {
       key: "id",
     },
   },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
 });
 
 module.exports = User;

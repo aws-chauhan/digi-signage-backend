@@ -40,6 +40,7 @@ exports.register = async (req, res) => {
       phoneNumber,
       email,
       roleId: roleRecord.id,
+      isActive: true, // ✅ explicitly set isActive
     });
 
     res.status(201).json({ message: "User created", user: user.username });
@@ -55,11 +56,19 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
   console.log(`🟡 Login attempt for: ${username}`);
 
-  const user = await User.findOne({ where: { username } });
+  const user = await User.findOne({
+    where: { username },
+    include: { model: Role, attributes: ["name"] },
+  });
 
   if (!user) {
     console.log("🔴 User not found");
     return res.status(400).json({ error: "Invalid credentials" });
+  }
+
+  if (!user.isActive) {
+    console.log("🔒 Inactive user login attempt");
+    return res.status(403).json({ error: "User account is inactive" });
   }
 
   console.log("🟢 User found:", user.username);
@@ -75,7 +84,7 @@ exports.login = async (req, res) => {
 
   const userPayload = {
     userId: user.id,
-    role: "admin", // You can use user.role if you have this field in DB
+    role: user.Role.name,
   };
 
   const accessToken = generateAccessToken(userPayload);
@@ -105,7 +114,8 @@ exports.login = async (req, res) => {
         firstName: user.firstName,
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
-        role: userPayload.role,
+        role: user.Role.name,
+        isActive: user.isActive, // ✅ Added user status
       },
     });
 };
