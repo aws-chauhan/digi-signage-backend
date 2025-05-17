@@ -26,7 +26,7 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: false,
     validate: {
-      is: /^\+?[1-9]\d{0,3}-?0?\d{10}$/, // supports +countrycode-0123456789
+      is: /^\+?[1-9]\d{0,3}-?0?\d{10}$/,
     },
   },
   email: {
@@ -35,6 +35,14 @@ const User = sequelize.define("User", {
     allowNull: false,
     validate: {
       isEmail: true,
+    },
+  },
+  roleId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: "Roles",
+      key: "id",
     },
   },
 });

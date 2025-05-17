@@ -12,42 +12,47 @@ const s3 = new AWS.S3({
 
 // POST /api/media/presigned-url
 exports.getPresignedUrl = async (req, res) => {
-  console.log(11111111111111, "Getting url");
+  console.log("[INFO] Requested presigned URL");
+
   const { filename, filetype, userId } = req.body;
-  console.log(req.body);
+  console.log("[DEBUG] Request body:", req.body);
 
   if (!filename || !filetype || !userId) {
+    console.warn("[WARN] Missing filename, filetype, or userId");
     return res
       .status(400)
       .json({ error: "Missing filename, filetype, or userId" });
   }
 
   const key = `userMedia/uploads/${userId}/${uuidv4()}_${filename}`;
-
   const params = {
     Bucket: process.env.S3_BUCKET_NAME,
     Key: key,
     Expires: 60,
     ContentType: filetype,
-    // ACL: "public-read",
   };
 
   try {
     const url = await s3.getSignedUrlPromise("putObject", params);
-    console.log(1111, url);
-    console.log(2222, key);
+    console.log("[INFO] Presigned URL generated");
+    console.log("[DEBUG] URL:", url);
+    console.log("[DEBUG] S3 Key:", key);
     res.json({ url, key });
   } catch (err) {
-    console.error("❌ Failed to generate signed URL:", err);
+    console.error("[ERROR] Failed to generate signed URL:", err);
     res.status(500).json({ error: "Presigned URL generation failed" });
   }
 };
 
 // POST /api/media/confirm-upload
 exports.confirmUpload = async (req, res) => {
+  console.log("[INFO] Confirming uploaded media");
+
   const { key, userId, filename, mimeType, fileSize } = req.body;
+  console.log("[DEBUG] Confirm payload:", req.body);
 
   if (!key || !userId || !filename || !mimeType || !fileSize) {
+    console.warn("[WARN] Missing required fields for confirmation");
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -62,9 +67,10 @@ exports.confirmUpload = async (req, res) => {
       fileSize,
     });
 
+    console.log("[INFO] Media content saved to database");
     res.json({ message: "Upload recorded", fileUrl });
   } catch (err) {
-    console.error("❌ Failed to save media content:", err);
+    console.error("[ERROR] Failed to save media content to DB:", err);
     res.status(500).json({ error: "DB save failed" });
   }
 };

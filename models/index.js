@@ -1,9 +1,14 @@
-const sequelize = require("../config/db"); // ✅ Fix here
+const sequelize = require("../config/db");
 
-const User = require("./User");
+const User = require("./user");
+const Role = require("./Role");
 const MediaContent = require("./MediaContent");
 
-// Set up associations
+// User ↔ Role
+Role.hasMany(User, { foreignKey: "roleId" });
+User.belongsTo(Role, { foreignKey: "roleId" });
+
+// User ↔ MediaContent
 User.hasMany(MediaContent, {
   foreignKey: "uploadedBy",
   onDelete: "CASCADE",
@@ -13,7 +18,8 @@ MediaContent.belongsTo(User, {
 });
 
 module.exports = {
-  sequelize, // ✅ this was missing
+  sequelize,
   User,
+  Role,
   MediaContent,
 };

@@ -1,16 +1,34 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { User } = require("../models");
+const { User, Role } = require("../models");
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../utils/tokenUtils");
 const isProduction = process.env.NODE_ENV === "production";
 const httpOnly = process.env.COOKIE_HTTP_ONLY === "true";
+
 exports.register = async (req, res) => {
   try {
-    const { username, password, firstName, lastName, phoneNumber, email } =
-      req.body;
+    const {
+      username,
+      password,
+      firstName,
+      lastName,
+      phoneNumber,
+      email,
+      role, // expecting 'admin', 'editor', or 'viewer'
+    } = req.body;
+
+    if (!role) {
+      return res.status(400).json({ error: "Role is required." });
+    }
+
+    const roleRecord = await Role.findOne({ where: { name: role } });
+
+    if (!roleRecord) {
+      return res.status(400).json({ error: `Invalid role: ${role}` });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -21,24 +39,39 @@ exports.register = async (req, res) => {
       lastName,
       phoneNumber,
       email,
+      roleId: roleRecord.id,
     });
 
     res.status(201).json({ message: "User created", user: user.username });
   } catch (err) {
     console.error("❌ Error during registration:", err);
-    res.status(400).json({ error: `Error while creating user: ${err}` });
+    res
+      .status(400)
+      .json({ error: `Error while creating user: ${err.message}` });
   }
 };
 
 exports.login = async (req, res) => {
   const { username, password } = req.body;
-  console.log(`Received login for ${username}`);
+  console.log(`🟡 Login attempt for: ${username}`);
 
   const user = await User.findOne({ where: { username } });
-  if (!user) return res.status(400).json({ error: "Invalid credentials" });
+
+  if (!user) {
+    console.log("🔴 User not found");
+    return res.status(400).json({ error: "Invalid credentials" });
+  }
+
+  console.log("🟢 User found:", user.username);
+  console.log("🔐 Password:", password);
+  console.log("🔐 Stored hash:", user.password);
 
   const valid = await bcrypt.compare(password, user.password);
-  if (!valid) return res.status(400).json({ error: "Invalid credentials" });
+  console.log("🔍 Password match:", valid);
+
+  if (!valid) {
+    return res.status(400).json({ error: "Invalid credentials" });
+  }
 
   const userPayload = {
     userId: user.id,

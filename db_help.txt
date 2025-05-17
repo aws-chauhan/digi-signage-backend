@@ -1,0 +1,33 @@
+CREATE TABLE "Roles" (
+  "id" SERIAL PRIMARY KEY,
+  "name" VARCHAR(255) UNIQUE NOT NULL,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+  "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+
+INSERT INTO "Roles" ("name", "createdAt", "updatedAt")
+VALUES 
+  ('admin', NOW(), NOW()),
+  ('editor', NOW(), NOW()),
+  ('viewer', NOW(), NOW());
+
+SELECT * FROM "Roles";
+
+
+INSERT INTO "Users" (
+  "username", "password", "refreshToken", "firstName", "lastName",
+  "phoneNumber", "email", "roleId", "createdAt", "updatedAt"
+) VALUES
+-- Admin
+('admin', '$2b$10$Z38Q8l2LfYFY5lNoCXCmQuXZOr5n5LnLFPu6IGU7KiMQevzZEdk3S', NULL,
+ 'Admin', 'User', '+91-9876543210', 'admin@example.com', 1, NOW(), NOW()),
+
+-- Editor
+('editor', '$2b$10$qYBP6iRZ5b/8f0ZrZPmcyeGHMa4DQ58/9EXA5BdGbgqK6FVYNmM82', NULL,
+ 'Editor', 'User', '+91-8765432109', 'editor@example.com', 2, NOW(), NOW()),
+
+-- Viewer
+('viewer', '$2b$10$7x8eVzzH.bZW4yzEQAxpSejWe65RPGeYfTxfSSiJNaGLRRzB7j7fu', NULL,
+ 'Viewer', 'User', '+91-7654321098', 'viewer@example.com', 3, NOW(), NOW());
+
